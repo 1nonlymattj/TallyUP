@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <!-- Meta Tags for when URL is sent via message -->
+        <meta charset="utf-8">
+        <meta name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta property="og:image"
+            content="http://scoreboard/resources/img/scoreboard_title_img.png" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url"
+            content="showoutzsignup" />
+        <meta property="og:title" content="Scoreboard" />
+        <meta property="og:description"
+            content="Team Scorebook" />
+        <!-- End of Meta Tags -->
+
+        <!-- Web Page Title -->
+        <title>Slowpitch Scoreboard | Home</title>
+        <link rel="icon" href="resources/img/scoreboard_title_img.png" type="image/png"
+            sizes="16x16">
+
+        <!-- FONT AWESOME Only -->
+        <link
+            href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.css"
+            rel="stylesheet" type='text/css'>
+
+        <!-- CSS only -->
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <link href="resources/css/Scoreboard_Style.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    </head>
+    <body>
+        <div class="setup">
+        <h2>Setup</h2>
+        <input id="awayTeam" maxlength="12" placeholder="Away Team Name" />
+        <input id="homeTeam" maxlength="12" placeholder="Home Team Name" />
+
+        <h3>Select Lineup Team</h3>
+        <label><input type="radio" class="teamSelect" name="teamSelect" value="away" checked/> <span id="awayTeamLabel">Away</span></label>
+        <label><input type="radio" class="teamSelect" name="teamSelect" value="home" /> <span id="homeTeamLabel">Home</span></label>
+
+        <h3>Players (max 12)</h3>
+        <input id="playerName" placeholder="Player Name" />
+        <select id="playerPosition" class="playerInput">
+            <option value "">Select Position</option>
+            <option value="P">P</option><option value="C">C</option>
+            <option value="1B">1B</option><option value="2B">2B</option>
+            <option value="3B">3B</option><option value="SS">SS</option>
+            <option value="LF">LF</option><option value="LC">LC</option>
+            <option value="RC">RC</option><option value="RF">RF</option>
+            <option value="EH">EH</option><option value="CF">CF</option>
+            <option value="5th Man">5th Man</option>
+        </select><br>
+        <button onclick="addPlayer()">Add Player</button>
+
+        <h3>Game Settings</h3>
+        <label>Timer:</label>
+        <select id="timerSelect">
+            <option value="60" selected>1 Hour</option>
+            <option value="120">2 Hours</option>
+            <option value="180">3 Hours</option>
+        </select>
+
+        <label>Innings:</label>
+        <select id="inningSelect">
+            <option value="6">6 Innings</option>
+            <option value="7" selected>7 Innings</option>
+            <option value="9">9 Innings</option>
+        </select>
+        <br><br>
+        <h3>Game Options</h3>
+        <label>
+            <input type="checkbox" id="doubleHeaderCheckbox"><span id="isDoubleHeader">Double Header</span>
+        </label>
+        <label>
+            <input type="checkbox" id="stealsAllowed"><span id="areStealsAllowed">Steals Allowed</span>
+        </label>
+        <br>
+        <button onclick="startGame()">Start Game</button>
+        </div>
+
+        <div id="lineupPreviewContainer" style="display: none;">
+            <h3>Lineup Preview</h3>
+            <div class="lineup-preview-header">
+                <span id="awayTeamNamePreview">Away</span>
+                <span id="homeTeamNamePreview">Home</span>
+            </div>
+            <div class="lineup-preview">
+                <ul id="awayLineupPreview" class="sortable-list"></ul>
+                <ul id="homeLineupPreview" class="sortable-list"></ul>
+            </div>
+
+            <div class="lineup-buttons">
+                <button id="awayLineupBtn" style="display: none;" onclick="showOnlyLineup('away')"></button>
+                <button id="homeLineupBtn" style="display: none;" onclick="showOnlyLineup('home')"></button>
+            </div>
+            </div>
+
+        <div class="game" style="display: none;">
+        <h3 id="inningDisplay">Inning: 1 (Top)</h3>
+        <h3 id="timerDisplay">Time Left: 60:00</h3>
+        <button onclick="endGame()">End Game</button>
+        <div id="lineupButtonsContainer" style="display: none;">
+            <button id="awayLineupViewBtn" onclick="showOnlyLineup('away')">Away Lineup</button>
+            <button id="homeLineupViewBtn" onclick="showOnlyLineup('home')">Home Lineup</button>
+        </div>
+
+        <div id="manualInningEntry" style="display: none;"></div>
+
+        <div id="fieldInterface">
+            <h3>Player Stats</h3>
+            <table id="playerStatsTable">
+                <thead>
+                    <tr>
+                    <th>Player</th>
+                    <th>ABs</th>
+                    <th>Hits</th>
+                    <th>Singles</th>
+                    <th>Doubles</th>
+                    <th>Triples</th>
+                    <th>HRs</th>
+                    <th>Fielder Choice</th>
+                    <th>BB</th>
+                    <th>K</th>
+                    <th>AVG</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <h3>Batter History</h3>
+            <div id="batterHistoryList"></div>
+            <h2 id="batterInfo">Batter: </h2>
+            <div class="buttons">
+                <button onclick="recordPlay('1B')">1B</button>
+                <button onclick="recordPlay('2B')">2B</button>
+                <button onclick="recordPlay('3B')">3B</button>
+                <button onclick="recordPlay('HR')">HR</button>
+                <button onclick="recordPlay('BB')">BB</button>
+                <button onclick="recordPlay('K')">K</button>
+                <button onclick="recordPlay('OUT')">Out</button>
+                <button onclick="showStealDialog()" id="stealButton" style="display:none;">Steal</button>
+
+            </div>
+            <div id="field">
+                <div id="runnerDot" class="runner" style="display:none;"></div>
+                <div class="bases">
+                    <div class="base" id="base2"></div>
+                    <div class="base" id="base3"></div>
+                    <div class="base" id="base1"></div>
+                    <div class="home" id="home"></div>
+                </div>
+            </div>
+            <div class="outs" id="outs">
+                <span class="out"></span>
+                <span class="out"></span>
+                <span class="out"></span>
+            </div>
+        </div>
+
+        <h3>Box Score</h3>
+        <div id="scoreDisplay">
+                <span id="awayScoreDisplay"></span>
+                -
+                <span id="homeScoreDisplay"></span>
+            </div><br><br>
+        <table id="boxScoreTable">
+            <thead>
+                <tr id="boxScoreHeader"><th></th></tr>
+            </thead>
+            <tbody>
+                <tr id="awayRow"><td>Away</td></tr>
+                <tr id="homeRow"><td>Home</td></tr>
+            </tbody>
+        </table>
+
+        <div id="finalScoreDialog" title="Game Over" style="display:none;">
+            <p id="finalScoreText"></p>
+        </div>
+
+        <div id="lineupModal" title="Team Lineup" style="display: none;">
+            <div style="display: flex; justify-content: space-between; gap: 30px;">
+                <div style="flex: 1;">
+                    <h4 id="lineupHomeTeamName">Home</h4>
+                    <ul id="homeLineupList" class="lineup-list"></ul>
+                </div>
+                <div style="flex: 1;">
+                    <h4 id="lineupAwayTeamName">Away</h4>
+                    <ul id="awayLineupList" class="lineup-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="interactiveOutModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <h3>Runner Decisions</h3>
+                <div id="baseOutOptions">
+                <!-- Options for each base get injected here -->
+                </div>
+                <label>
+                <input type="checkbox" id="batterOutCheckbox"> <span>Batter was out</span>
+                </label>
+                <div class="modal-buttons">
+                <button id="interactiveOutSubmit" onclick="submitInteractiveOut()">Submit</button>
+                <button id="interactiveOutModal" onclick="closeInteractiveOutModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="stealModal" class="modal" style="display:none;">
+            <h3>Steal Attempt</h3>
+            <div id="stealOptionsContainer"></div>
+            <br>
+            <button onclick="submitSteal()">Submit</button>
+            <button onclick="closeStealModal()">Cancel</button>
+        </div>
+
+        <div id="doubleHeaderModal" class="modal" title="Double Header Game 2" style="display:none;">
+            <p>Reorder the lineups below before starting Game 2.</p>
+            <div style="display: flex; justify-content: space-between; gap: 30px;">
+                <div style="flex: 1;">
+                <h4 id="homeReorderHeader">Home</h4>
+                <ul id="homeReorderList" class="sortable-list"></ul>
+                </div>
+                <div style="flex: 1;">
+                <h4 id="awayReorderHeader">Away</h4>
+                <ul id="awayReorderList" class="sortable-list"></ul>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Footer -->
+        <footer align="center">
+            <!-- Copyright -->
+            <div class="text-center p-1">
+                <p class="m-0 text-center text-white">
+                    <span class="footer-text"> Copyright &copy; </span>
+                    <span class="footer-text" id="year"></span> <span
+                        class="footer-text">Showoutz Softball Signup
+                    </span><br><span
+                        class="footer-statement">All Rights
+                        Reserved</span>
+                </p>
+                <!-- End of Copyright -->
+                <!-- Created By -->
+                <div id="fuzzyWebDesign" class="powered">
+                    Click The Bear For Website Inquiries
+                    <a id="WebDesignInquiry"><img
+                            class="powerImage"
+                            src="resources/img/BlueFuzzyLogo.png"
+                            alt=""></a>
+                </div>
+                <!-- End of Created By -->
+            </div>
+        </footer>
+        <!-- End of Footer -->
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+            crossorigin="anonymous"></script>
+        <script src="resources/js/Variables.js"></script>
+        <script src="resources/js/Scoreboard.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+        <script src="resources/js/Inquiry.js"></script>
+        <script src="resources/js/Dialog.js"></script>
+        <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js"></script>
+        <script src="https://kit.fontawesome.com/2e1e4a69a5.js" crossorigin="anonymous"></script>
+    </body>
+</html>
+

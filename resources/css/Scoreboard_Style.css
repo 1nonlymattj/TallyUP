@@ -1,0 +1,496 @@
+/* Background */
+
+body {
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+input,
+select {
+    margin: 5px 0;
+    padding: 6px;
+    width: 75%;
+    max-width: 300px;
+}
+
+button {
+    margin: 5px 0;
+    padding: 6px;
+    width: auto;
+    max-width: 100px;
+}
+
+.playerInput {
+    width: 45% !important;
+    background-color: transparent;
+}
+
+.setup,
+.game {
+    margin-bottom: 20px;
+}
+
+.setup {
+    margin-left: 28%;
+}
+
+.sortable-list li {
+    background: #f2f2f2;
+    border: 1px solid #ccc;
+    padding: 8px;
+    margin-bottom: 5px;
+    cursor: grab;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 200px;
+}
+
+.lineup-preview {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.lineup-preview-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  padding: 0 10px 5px 10px;
+}
+
+.sortable-list {
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 45%;
+  min-height: 100px;
+  background: #f9f9f9;
+  list-style: none;
+}
+
+.lineup-buttons {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+#stealsAllowed, #doubleHeaderCheckbox, #batterOutCheckbox {
+    width: 5% !important;
+}
+
+#areStealsAllowed, #isDoubleHeader {
+  text-align: center;
+  margin-bottom: 10px;
+  /* font-weight: bold; */
+  font-size: 16px;
+}
+
+#batterHistoryList table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#batterHistoryList th, #batterHistoryList td {
+    border: 1px solid #ccc;
+    padding: 4px 8px;
+    text-align: center;
+}
+
+.base, .home {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #ccc;
+  position: absolute;
+  border-radius: 5px;
+  transition: all 0.5s ease;
+}
+
+.base.active, .home.active {
+  background: yellow;
+}
+
+#field {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 20px auto;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+}
+
+#base1 { top: 70px; left: 140px; }
+#base2 { top: 0; left: 80px; }
+#base3 { top: 70px; left: 20px; }
+#home  { top: 140px; left: 80px; }
+
+.runner {
+  width: 20px;
+  height: 20px;
+  background-color: red;
+  position: absolute;
+  border-radius: 50%;
+  z-index: 100;
+  transition: all 0.8s ease-in-out;
+}
+
+.out {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  background: lightgray;
+  border-radius: 50%;
+}
+
+.out.active {
+  background: red;
+}
+
+#advanceModal label {
+  display: block;
+  margin: 5px 0;
+}
+
+.buttons button {
+  margin: 5px;
+  padding: 10px 15px;
+  font-size: 16px;
+}
+
+#boxScore {
+  border-collapse: collapse;
+  margin: 10px 0;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+#boxScore input.box-input {
+  width: 40px;
+  text-align: center;
+}
+
+#boxScore th, #boxScore td {
+  border: 1px solid #ccc;
+  padding: 6px;
+}
+
+.editable-input {
+  width: 50px;
+  text-align: center;
+}
+
+.modal {
+    width: 250px;
+    position: fixed;
+    background: white;
+    padding: 20px;
+    border: 2px solid #444;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal ul {
+    list-style: none;
+    padding: 0;
+}
+
+#playerStatsTable {
+  width: 100%;
+  max-width: 500px;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+#playerStatsTable th, #playerStatsTable td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+.teamSelect {
+    width: 3% !important;
+}
+
+/* Flash background or text for inning transition */
+.highlight-inning {
+  animation: pulseInning 0.6s ease-in-out;
+}
+
+@keyframes pulseInning {
+  0%   { background-color: #e5d4ff; color: black; }
+  50%  { background-color: #c49aff; color: black; }
+  100% { background-color: transparent; color: inherit; }
+}
+
+.extra-inning {
+  background-color: #e5d4ff; /* Light purple/lilac */
+}
+
+@keyframes pulseInning {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+
+input.locked-in {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+/* Start Dialog */
+.ui-dialog {
+    background: #FFFFFF;
+    border: 2px #000000 solid;
+    border-radius: 3px;
+    z-index: 1200 !important;
+}
+
+.ui-dialog-titlebar {
+    background: #ff8800;
+    text-align: center;
+    padding: .5em;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.ui-dialog-content {
+    min-height: 50px !important;
+    padding: 1em 2em !important;
+    font-family: sans-serif;
+    font-size: 18px;
+    color: #000000 !important;
+}
+
+.ui-dialog-buttonset {
+    display: flex;
+    justify-content: center;
+}
+
+/* .ui-dialog-titlebar-close {
+    display: none;
+} */
+
+.ui-widget-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #232323;
+    opacity: 0.7;
+}
+
+.ui-front {
+    z-index: 100;
+}
+
+.dialogButton {
+    height: auto;
+    width: 175px;
+    border-radius: 8px;
+    background-color: #fa9804;
+    color: #ffffff;
+    font-size: 18px;
+    padding: 5px;
+    margin: 15px;
+    right: 33%;
+}
+
+.clearButton {
+    height: auto;
+    width: 175px;
+    border-radius: 8px;
+    background-color: #f94949;
+    color: #000000;
+    font-size: 18px;
+    padding: 5px;
+    margin: 15px;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+    padding: 0.4em 1em;
+    position: relative;
+}
+
+.ui-dialog .ui-dialog-titlebar-close {
+    position: absolute;
+    right: 0.3em;
+    top: 50%;
+    width: 20px;
+    margin: -22px -6px 0 0;
+    /* margin: -10px 0 0 0; */
+    padding: 1px;
+    height: 20px;
+    background: none;
+    border: none;
+}
+
+.ui-dialog .ui-dialog-titlebar-close:hover {
+    background-color: #c2c2c2;
+    /* Change the background color on hover */
+    color: #000000;
+    /* Change the text color on hover */
+}
+/* End Dialog */
+
+/* Footer */
+footer {
+    clear: both;
+    position: relative;
+    margin-top: 50%;
+}
+
+.powered {
+    font-size: 12px;
+    color: #bababa;
+}
+
+.powerImage {
+    max-width: 100%;
+    max-height: 25px;
+}
+
+.footer-text {
+    font-size: 14px;
+    color: #bababa;
+}
+
+.footer-statement {
+    font-size: 13px;
+    color: #bababa;
+}
+/* End Footer */
+
+/* Dialog Form */
+.form-group {
+    margin: 30px auto;
+    width: 325px;
+}
+
+.form-control {
+    float: left;
+    width: 75%;
+    height: 25px;
+    font-size: 14px;
+}
+
+.form-control-textfield {
+    float: left;
+    width: 75%;
+    font-size: 14px;
+    word-wrap: break-word;
+    word-break: break-all;
+    resize: none;
+}
+/* End Dialog */
+
+/* Radio Buttons */
+.container {
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+label {
+    font-size: 16px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.radio-btn {
+    display: none;
+}
+
+.label-btn {
+    border: 2px solid #000000;
+    border-radius: 4px;
+    background-color: #ff6803;
+    color: #000000;
+    cursor: pointer;
+    text-align: center;
+    font-size: 16px;
+    padding: 16px;
+    margin-top: 5%;
+}
+
+/* When the radio button is checked, style the label accordingly */
+.radio-btn:checked+.label-btn {
+    border: 2px solid #ff6803;
+    border-radius: 4px;
+    background-color: #000000;
+    color: #ffffff;
+}
+/* End Radio Buttons */
+
+/* hidden */
+.hidden {
+    display: none;
+}
+/* End Hidden */
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  table#boxScore {
+    font-size: 12px;
+  }
+
+  table#boxScore input.box-input {
+    width: 30px;
+    font-size: 12px;
+  }
+
+  #fieldInterface, .buttons, #manualInningEntry {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .buttons button {
+    padding: 8px;
+    margin: 4px;
+  }
+
+  #playerStatsTable th, #playerStatsTable td {
+    padding: 4px 6px;
+  }
+
+  input, select, button {
+    font-size: 14px !important;
+  }
+
+  #inningDisplay, #timerDisplay {
+    font-size: 16px;
+  }
+}
