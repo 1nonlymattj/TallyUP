@@ -7,7 +7,7 @@
         <meta name="viewport"
             content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta property="og:image"
-            content="http://scoreboard/resources/img/scoreboard_title_img.png" />
+            content="http://scoreboard/resources/img/TallyUP_Logo.png" />
         <meta property="og:type" content="website" />
         <meta property="og:url"
             content="showoutzsignup" />
@@ -18,7 +18,7 @@
 
         <!-- Web Page Title -->
         <title>Slowpitch Scoreboard | Home</title>
-        <link rel="icon" href="resources/img/scoreboard_title_img.png" type="image/png"
+        <link rel="icon" href="resources/img/TallyUP_Logo.png" type="image/png"
             sizes="16x16">
 
         <!-- FONT AWESOME Only -->
@@ -102,6 +102,7 @@
         <h3 id="inningDisplay">Inning: 1 (Top)</h3>
         <h3 id="timerDisplay">Time Left: 60:00</h3>
         <button onclick="endGame()">End Game</button>
+        <button id="exportStatsBtn">Export Stats (CSV)</button>
         <div id="lineupButtonsContainer" style="display: none;">
             <button id="awayLineupViewBtn" onclick="showOnlyLineup('away')">Away Lineup</button>
             <button id="homeLineupViewBtn" onclick="showOnlyLineup('home')">Home Lineup</button>
@@ -110,23 +111,13 @@
         <div id="manualInningEntry" style="display: none;"></div>
 
         <div id="fieldInterface">
+            <label>
+                <input type="checkbox" id="toggleAdvancedStats" onchange="updatePlayerStatsTable()">
+                Show Advanced Stats
+            </label>
             <h3>Player Stats</h3>
             <table id="playerStatsTable">
-                <thead>
-                    <tr>
-                    <th>Player</th>
-                    <th>ABs</th>
-                    <th>Hits</th>
-                    <th>Singles</th>
-                    <th>Doubles</th>
-                    <th>Triples</th>
-                    <th>HRs</th>
-                    <th>Fielder Choice</th>
-                    <th>BB</th>
-                    <th>K</th>
-                    <th>AVG</th>
-                    </tr>
-                </thead>
+                <thead id="playerStatsHeader"></thead>
                 <tbody></tbody>
             </table>
             <h3>Batter History</h3>
@@ -239,7 +230,7 @@
                 <p class="m-0 text-center text-white">
                     <span class="footer-text"> Copyright &copy; </span>
                     <span class="footer-text" id="year"></span> <span
-                        class="footer-text">Showoutz Softball Signup
+                        class="footer-text">TallyUP Scorebook
                     </span><br><span
                         class="footer-statement">All Rights
                         Reserved</span>
@@ -247,10 +238,10 @@
                 <!-- End of Copyright -->
                 <!-- Created By -->
                 <div id="fuzzyWebDesign" class="powered">
-                    Click The Bear For Website Inquiries
+                    https://tinyurl.com/TallyUPScorebook is a Fuzzy Web Design LLC creation
                     <a id="WebDesignInquiry"><img
                             class="powerImage"
-                            src="resources/img/BlueFuzzyLogo.png"
+                            src="resources/img/TallyUP_Logo.png"
                             alt=""></a>
                 </div>
                 <!-- End of Created By -->

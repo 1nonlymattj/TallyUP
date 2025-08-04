@@ -28,6 +28,7 @@ let runnersAdvancingForHit = false;
 let homeTeam = '';
 let awayTeam = '';
 
+const savedToggle = localStorage.getItem('showAdvancedStats');
 
 const positionOptions = [
     'P', 'C', '1B', '2B', '3B',

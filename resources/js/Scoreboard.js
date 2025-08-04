@@ -267,26 +267,32 @@ function advanceRunners(type) {
 function applyBatterAdvance(type) {
   const advancement = { '1B': 1, '2B': 2, '3B': 3, 'HR': 4 }[type] || 0;
   const isHomeBatting = half === 'bottom';
+  const players = isHomeBatting ? homePlayers : awayPlayers;
+  const batter = players[batterIndex % players.length]; 
 
   const addRun = () => {
     if (isHomeBatting) homeTeamRuns++;
     else awayTeamRuns++;
   };
 
+  let rbis = 0;
+
   if (advancement === 4) {
-    // HR: all score
-    for (let i = 0; i < 3; i++) {
+    // HR: all runners score
+    for (let i = 2; i >= 0; i--) {
       if (bases[i]) {
         addRun();
         bases[i] = false;
+        rbis++;
       }
     }
-    addRun(); // batter scores
-
+    addRun(); // Batter scores
     batter.history.push('HR');
-    batterStats.push({ name: batter.name, result: 'HR' });
+    batterStats.push({ name: batter.name, result: 'HR', rbis: rbis + 1 });
   } else if (advancement > 0) {
     bases[advancement - 1] = true;
+    batter.history.push(type);
+    batterStats.push({ name: batter.name, result: type, rbis: 0 }); // RBI will be handled via runner dialog
   }
 
   updateBasesAnimated();
@@ -457,27 +463,27 @@ function submitInteractiveOut() {
     // Process runner advancements
     // Process runner advancements (advance runners before animating)
     runnersToAdvance.sort((a, b) => b.from - a.from).forEach(({ from, to }) => {
-        // Clear old base before anything
-        bases[from] = false;
+      bases[from] = false;
 
-        const isScoring = to >= 3;
-        const inningWillEnd = outs + newOuts >= 3;
+      const isScoring = to >= 3;
+      const inningWillEnd = totalOuts >= 3;
 
-        if (isScoring) {
-            // Only count run if inning is not ending
-            if (!inningWillEnd || (outs + runnersOut.length < 3)) {
-            if (half === 'bottom') homeTeamRuns++;
-            else awayTeamRuns++;
-            }
-        } else {
-            // Mark the target base occupied BEFORE animation
-            bases[to] = true;
+      if (isScoring) {
+        if (!inningWillEnd || (outs + runnersOut.length < 3)) {
+          if (half === 'bottom') homeTeamRuns++;
+          else awayTeamRuns++;
+
+          // Only count RBI for batter when scoring occurs
+          if (runnersAdvancingForHit && pendingHitType) {
+            const batter = (half === 'top' ? awayPlayers : homePlayers)[batterIndex % (half === 'top' ? awayPlayers.length : homePlayers.length)];
+            const stat = batterStats.find(stat => stat.name === batter.name && stat.result === pendingHitType);
+            if (stat) stat.rbis = (stat.rbis || 0) + 1;
+          }
         }
-
-        // Animate movement if not scoring
-        if (!isScoring) {
-            animateRunner(from, to);
-        }
+      } else {
+        bases[to] = true;
+        animateRunner(from, to); // Animate non-scoring runner
+      }
     });
 
 
@@ -890,36 +896,86 @@ function addExtraInningColumn(inningIndex) {
 
 function updatePlayerStatsTable() {
   const tableBody = document.querySelector('#playerStatsTable tbody');
-  tableBody.innerHTML = '';
+  const tableHead = document.querySelector('#playerStatsHeader');
+  const showAdvanced = document.getElementById('toggleAdvancedStats')?.checked;
 
-  // Determine which team's players to show
+  tableBody.innerHTML = '';
+  tableHead.innerHTML = '';
+
   const currentBattingPlayers = half === 'top' ? awayPlayers : homePlayers;
 
+  // Build header row
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `
+    <th>PLAYER</th>
+    <th>ABs</th>
+    <th>H</th>
+    ${showAdvanced ? `
+      <th>1B</th>
+      <th>2B</th>
+      <th>3B</th>
+      <th>HR</th>
+      <th>FC</th>
+    ` : `
+      <th>HR</th>
+    `}
+    <th>K</th>
+    <th>BB</th>
+    ${showAdvanced ? `
+      <th>RBIs</th>
+      <th>TB</th>
+      <th>SLG</th>
+      <th>OBP</th>
+    ` : ''}
+    <th>AVG</th>
+  `;
+  tableHead.appendChild(headerRow);
+
   currentBattingPlayers.forEach(player => {
-    const hits = player.history.filter(r => ['1B', '2B', '3B', 'HR'].includes(r)).length;
-    const hrs = player.history.filter(r => r === 'HR').length;
-    const bbs = player.history.filter(r => r === 'BB').length;
-    const ks = player.history.filter(r => r === 'K').length;
-    const fcs = player.history.filter(r => r === 'FC').length;
-    
-    // ABs = everything except walks
-    const atBats = player.history.filter(r => !['BB'].includes(r)).length;
-    
-    // AVG = hits / atBats
+    const history = player.history || [];
+
+    const singles = history.filter(r => r === '1B').length;
+    const doubles = history.filter(r => r === '2B').length;
+    const triples = history.filter(r => r === '3B').length;
+    const hrs = history.filter(r => r === 'HR').length;
+    const fcs = history.filter(r => r === 'FC').length;
+    const bbs = history.filter(r => r === 'BB').length;
+    const ks = history.filter(r => r === 'K').length;
+
+    const hits = singles + doubles + triples + hrs;
+    const atBats = history.filter(r => !['BB'].includes(r)).length;
+
+    const playerRBIs = batterStats
+      .filter(e => e.name === player.name && e.rbis)
+      .reduce((sum, e) => sum + e.rbis, 0);
+
+    const totalBases = singles + (doubles * 2) + (triples * 3) + (hrs * 4);
     const avg = atBats > 0 ? (hits / atBats).toFixed(3) : '0.000';
+    const slg = atBats > 0 ? (totalBases / atBats).toFixed(3) : '0.000';
+    const obp = (atBats + bbs) > 0 ? ((hits + bbs) / (atBats + bbs)).toFixed(3) : '0.000';
 
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${player.name}</td>
       <td>${atBats}</td>
       <td>${hits}</td>
-      <td>${player.history.filter(r => r === '1B').length}</td>
-      <td>${player.history.filter(r => r === '2B').length}</td>
-      <td>${player.history.filter(r => r === '3B').length}</td>
-      <td>${hrs}</td>
-      <td>${fcs}</td>
+      ${showAdvanced ? `
+        <td>${singles}</td>
+        <td>${doubles}</td>
+        <td>${triples}</td>
+        <td>${hrs}</td>
+        <td>${fcs}</td>
+      ` : `
+        <td>${hrs}</td>
+      `}
       <td>${ks}</td>
       <td>${bbs}</td>
+      ${showAdvanced ? `
+        <td>${playerRBIs}</td>
+        <td>${totalBases}</td>
+        <td>${slg}</td>
+        <td>${obp}</td>
+      ` : ''}
       <td>${avg}</td>
     `;
     tableBody.appendChild(row);
@@ -1272,3 +1328,72 @@ document.getElementById('awayTeam').addEventListener('input', () => {
   document.getElementById('lineupAwayTeamName').innerText = awayTeam;
   document.getElementById('awayLineupBtn').innerText = `${awayTeam} Lineup`;
 });
+
+document.getElementById('toggleAdvancedStats').addEventListener('change', (e) => {
+  localStorage.setItem('showAdvancedStats', e.target.checked);
+  updatePlayerStatsTable();
+});
+
+document.getElementById('exportStatsBtn').addEventListener('click', () => {
+  const headers = [
+    'Team', 'Player', 'ABs', '1B', '2B', '3B', 'HR', 'Hits', 'FC', 'Ks', 'BBs', 'RBIs', 'TB', 'AVG', 'SLG', 'OBP'
+  ];
+  const csvRows = [headers.join(',')];
+
+  const processTeam = (players, teamName) => {
+    players.forEach(player => {
+      const history = player.history || [];
+
+      const count = val => history.filter(r => r === val).length;
+      const hits = ['1B', '2B', '3B', 'HR'].reduce((sum, val) => sum + count(val), 0);
+      const atBats = history.filter(r => !['BB'].includes(r)).length;
+      const walks = count('BB');
+      const strikeouts = count('K');
+      const fcs = count('FC');
+      const rbis = (player.rbis || 0); // make sure you're assigning this in your hit handling
+      const totalBases = count('1B') + count('2B') * 2 + count('3B') * 3 + count('HR') * 4;
+
+      const avg = atBats > 0 ? (hits / atBats).toFixed(3) : '0.000';
+      const slg = atBats > 0 ? (totalBases / atBats).toFixed(3) : '0.000';
+      const obp = (atBats + walks) > 0 ? ((hits + walks) / (atBats + walks)).toFixed(3) : '0.000';
+
+      csvRows.push([
+        teamName,
+        player.name,
+        atBats,
+        count('1B'),
+        count('2B'),
+        count('3B'),
+        count('HR'),
+        hits,
+        fcs,
+        strikeouts,
+        walks,
+        rbis,
+        totalBases,
+        avg,
+        slg,
+        obp
+      ].join(','));
+    });
+  };
+
+  processTeam(awayPlayers, 'Away');
+  processTeam(homePlayers, 'Home');
+
+  const csv = csvRows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Softball_Stats_Game${Date.now()}.csv`);
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+
+if (savedToggle !== null) {
+  document.getElementById('toggleAdvancedStats').checked = savedToggle === 'true';
+}
